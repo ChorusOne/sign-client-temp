@@ -1,4 +1,4 @@
-import { CloudWatch, PutMetricDataCommandInput } from "@aws-sdk/client-cloudwatch";
+import CloudWatch from "aws-sdk/clients/cloudwatch";
 
 export const uploadCanaryResultsToCloudWatch = async (
   env: string,
@@ -85,7 +85,7 @@ export const uploadCanaryResultsToCloudWatch = async (
     };
   });
 
-  const params: PutMetricDataCommandInput = {
+  const params: CloudWatch.PutMetricDataInput = {
     MetricData: [...metrics, ...latencies],
     Namespace: `${env}_Canary_SignClient`,
   };
@@ -115,7 +115,7 @@ export const uploadLoadTestConnectionDataToCloudWatch = async (
   const cloudwatch = new CloudWatch({ region: "eu-central-1" });
   const ts = new Date();
 
-  const params: PutMetricDataCommandInput = {
+  const params: CloudWatch.PutMetricDataInput = {
     MetricData: [
       {
         MetricName: `${metricsPrefix}.connect.successful`,

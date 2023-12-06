@@ -17,7 +17,7 @@ import {
   isJsonRpcResult,
   JsonRpcRequest,
 } from "@walletconnect/jsonrpc-utils";
-import { FIVE_MINUTES, ONE_SECOND, toMiliseconds } from "@walletconnect/time";
+import { ONE_DAY, ONE_SECOND, toMiliseconds } from "@walletconnect/time";
 import {
   EnginePrivate,
   EngineTypes,
@@ -67,7 +67,6 @@ import {
   TYPE_1,
   handleDeeplinkRedirect,
   MemoryStore,
-  getDeepLink,
 } from "@walletconnect/utils";
 import EventEmmiter from "events";
 import {
@@ -172,7 +171,7 @@ export class Engine extends IEngine {
       reject,
       resolve,
       done: approval,
-    } = createDelayedPromise<SessionTypes.Struct>(FIVE_MINUTES, PROPOSAL_EXPIRY_MESSAGE);
+    } = createDelayedPromise<SessionTypes.Struct>(ONE_DAY, PROPOSAL_EXPIRY_MESSAGE);
     this.events.once<"session_connect">(
       engineEvent("session_connect"),
       async ({ error, session }) => {
@@ -208,7 +207,7 @@ export class Engine extends IEngine {
       params: proposal,
     });
 
-    const expiry = calcExpiry(FIVE_MINUTES);
+    const expiry = calcExpiry(ONE_DAY);
     await this.setProposal(id, { id, expiry, ...proposal });
     return { uri, approval };
   };
@@ -368,10 +367,7 @@ export class Engine extends IEngine {
         resolve();
       }),
       new Promise<void>(async (resolve) => {
-        const wcDeepLink = await getDeepLink(
-          this.client.core.storage,
-          WALLETCONNECT_DEEPLINK_CHOICE,
-        );
+        const wcDeepLink = await this.client.core.storage.getItem(WALLETCONNECT_DEEPLINK_CHOICE);
         handleDeeplinkRedirect({ id, topic, wcDeepLink });
         resolve();
       }),
@@ -748,7 +744,7 @@ export class Engine extends IEngine {
     const { params, id } = payload;
     try {
       this.isValidConnect({ ...payload.params });
-      const expiry = calcExpiry(FIVE_MINUTES);
+      const expiry = calcExpiry(ONE_DAY);
       const proposal = { id, pairingTopic: topic, expiry, ...params };
       await this.setProposal(id, proposal);
       const hash = hashMessage(JSON.stringify(payload));
@@ -1114,7 +1110,6 @@ export class Engine extends IEngine {
           optionalNamespaces: proposal.optionalNamespaces,
           relays: proposal.relays,
           proposer: proposal.proposer,
-          sessionProperties: proposal.sessionProperties,
         },
         proposal.id,
       ),
